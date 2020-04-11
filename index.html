@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>WP without saving contact</title>
+    <link rel="stylesheet" href="./intl-tel-input/css/intlTelInput.css" />
+  </head>
+  <body>
+    <h1>WP without saving contact</h1>
+    <hr />
+
+    <input id="phone" type="tel" />
+    <button onclick="startWP()">Start WP</button>
+    <script src="./intl-tel-input/js/intlTelInput.js"></script>
+    <script>
+      var iti;
+      function startWP() {
+        var number = iti.getNumber();
+        window.open(`https://wa.me/${number.replace("+", "")}`);
+      }
+      (function() {
+        var input = document.querySelector("#phone");
+
+        // initialise plugin
+        iti = window.intlTelInput(input, {
+          initialCountry: "auto",
+          geoIpLookup: function(callback) {
+            fetch("https://ipinfo.io/json")
+              .then(response => {
+                return response.json();
+              })
+              .then(resp => {
+                var countryCode = resp && resp.country ? resp.country : "";
+                callback(countryCode);
+              });
+          },
+          formatOnDisplay: true,
+          utilsScript: "./intl-tel-input/js/utils.js?1585994360633" // just for formatting/placeholders etc
+        });
+
+        function formatIntlTelInput() {
+          if (typeof intlTelInputUtils !== "undefined") {
+            // utils are lazy loaded, so must check
+            var currentText = iti.getNumber(
+              intlTelInputUtils.numberFormat.E164
+            );
+            if (typeof currentText === "string") {
+              // sometimes the currentText is an object :)
+              iti.setNumber(currentText); // will autoformat because of formatOnDisplay=true
+            }
+          }
+        }
+
+        // on blur: validate
+        input.addEventListener("keyup", formatIntlTelInput);
+        input.addEventListener("change", formatIntlTelInput);
+      })();
+    </script>
+  </body>
+</html>
